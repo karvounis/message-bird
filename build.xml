@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<project name="message-bird-api-assignment" basedir="." default="build">
+    <target name="assign-properties">
+        <if>
+            <not>
+                <and>
+                    <isset property="env.MESSAGE_BIRD_API_KEY"></isset>
+                </and>
+            </not>
+            <then>
+                <input propertyname="env.MESSAGE_BIRD_API_KEY">MessageBird API Key:</input>
+            </then>
+        </if>
+    </target>
+    <target name="build" depends="assign-properties">
+        <copy todir="${project.basedir}" overwrite="true">
+            <mapper type="glob" from="*_TEMPLATE" to="*"/>
+            <filelist dir="${project.basedir}"
+                      files="config/MessageBird.ini_TEMPLATE"/>
+            <filterchain>
+                <replacetokens begintoken="%%" endtoken="%%">
+                    <token key="MESSAGE_BIRD_API_KEY" value="${env.MESSAGE_BIRD_API_KEY}"/>
+                </replacetokens>
+            </filterchain>
+        </copy>
+    </target>
+</project>
