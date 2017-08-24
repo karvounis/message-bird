@@ -1,0 +1,23 @@
+{
+    "name": "evangelos/message-bird-assignment",
+    "authors": [
+        {
+            "name": "Evangelos Karvounis",
+            "email": "karvounis.b@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "slim/slim": "^2.6",
+        "messagebird/php-rest-api": "^1.6.7"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Evangelos\\MessageBird\\": "src/",
+            "Evangelos\\MessageBird\\Api\\": "src/Api"
+        }
+    }
+}
