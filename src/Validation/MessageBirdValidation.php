@@ -11,6 +11,13 @@ class MessageBirdValidation
     /** Recipients can contain one at most + sign at the beginning digits followed by a maximum of 15 digits.*/
     const RECIPIENT_MATCH_REGEX = '/^\+{0,1}[0-9]{1,15}$/';
 
+    const ERR_MSG_FIELD_IS_EMPTY = '%s field is empty.';
+    const ERR_MSG_FIELD_IS_NOT_SET = '%s field is not set in the body of the request.';
+    const ERR_MSG_RECIPIENT_NOT_VALID = 'Recipient #%d is not valid';
+    const ERR_MSG_MESSAGE_TOO_LONG = 'Message is too long.';
+    const ERR_MSG_ORIGINATOR_NEGATIVE = 'Originator field is numeric and less than 0.';
+    const ERR_MSG_ORIGINATOR_ALPHANUMERIC_TOO_LONG = 'Originator field is alphanumeric and more than 11 characters.';
+
     /**
      * Validates the JSON fields of the body of the POST request.
      * First, checks whether the fields that are expected are set and they are not empty.
@@ -40,7 +47,7 @@ class MessageBirdValidation
         $explodedRecipients = explode(',', $recipients);
         foreach ($explodedRecipients as $key => $explodedRecipient) {
             if (!preg_match(self::RECIPIENT_MATCH_REGEX, $explodedRecipient)) {
-                throw new MessageBirdException('Recipient #' . $key . ' is not valid');
+                throw new MessageBirdException(sprintf(self::ERR_MSG_RECIPIENT_NOT_VALID, $key));
             }
         }
     }
@@ -55,11 +62,11 @@ class MessageBirdValidation
     {
         $messageLength = strlen($message);
         if ($messageLength > MessageBird::PLAIN_SMS_MAX_LENGTH) {
-            throw new MessageBirdException('Message is longer than allowed.');
+            throw new MessageBirdException(self::ERR_MSG_MESSAGE_TOO_LONG);
         }
         if (App::isStringUnicode($message)) {
             if ($messageLength > MessageBird::UNICODE_SMS_MAX_LENGTH) {
-                throw new MessageBirdException('Message is longer than allowed.');
+                throw new MessageBirdException(self::ERR_MSG_MESSAGE_TOO_LONG);
             }
         }
     }
@@ -74,11 +81,11 @@ class MessageBirdValidation
     {
         if (is_numeric($originator)) {
             if (intval($originator) < 0) {
-                throw new MessageBirdException('Originator field is numeric and less than 0.');
+                throw new MessageBirdException(self::ERR_MSG_ORIGINATOR_NEGATIVE);
             }
         } else {
             if (ctype_alnum($originator) && strlen($originator) > 11) {
-                throw new MessageBirdException('Originator field is alphanumeric and more than 11 characters.');
+                throw new MessageBirdException(self::ERR_MSG_ORIGINATOR_ALPHANUMERIC_TOO_LONG);
             }
         }
     }
@@ -93,10 +100,10 @@ class MessageBirdValidation
     {
         foreach (self::expectedBodyFields() as $expectedBodyField) {
             if (!isset($bodyData->$expectedBodyField)) {
-                throw new MessageBirdException($expectedBodyField . ' field is not present in the body of the request.');
+                throw new MessageBirdException(sprintf(self::ERR_MSG_FIELD_IS_NOT_SET, $expectedBodyField));
             }
             if (!strlen($bodyData->$expectedBodyField)) {
-                throw new MessageBirdException($expectedBodyField . ' field is empty.');
+                throw new MessageBirdException(sprintf(self::ERR_MSG_FIELD_IS_EMPTY, $expectedBodyField));
             }
         }
     }
