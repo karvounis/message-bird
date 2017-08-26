@@ -19,12 +19,12 @@ class MessageBirdValidation
      * @param \stdClass $bodyData
      * @throws MessageBirdException
      */
-    public static function validatePostRequestBodyFields($bodyData)
+    public function validatePostRequestBodyFields($bodyData)
     {
-        self::checkIfExpectedFieldsArePresentAndNotEmpty($bodyData);
-        self::validateOriginatorBodyField($bodyData->originator);
-        self::validateRecipientsBodyField($bodyData->recipients);
-        self::validateMessageBodyField($bodyData->message);
+        $this->checkIfExpectedFieldsArePresentAndNotEmpty($bodyData);
+        $this->validateOriginatorBodyField($bodyData->originator);
+        $this->validateRecipientsBodyField($bodyData->recipients);
+        $this->validateMessageBodyField($bodyData->message);
     }
 
     /**
@@ -35,7 +35,7 @@ class MessageBirdValidation
      * @param $recipients
      * @throws MessageBirdException
      */
-    private static function validateRecipientsBodyField($recipients)
+    private function validateRecipientsBodyField($recipients)
     {
         $explodedRecipients = explode(',', $recipients);
         foreach ($explodedRecipients as $key => $explodedRecipient) {
@@ -51,7 +51,7 @@ class MessageBirdValidation
      * @param $message
      * @throws MessageBirdException
      */
-    private static function validateMessageBodyField($message)
+    private function validateMessageBodyField($message)
     {
         $messageLength = strlen($message);
         if ($messageLength > MessageBird::PLAIN_SMS_MAX_LENGTH) {
@@ -70,7 +70,7 @@ class MessageBirdValidation
      * @param $originator
      * @throws MessageBirdException
      */
-    private static function validateOriginatorBodyField($originator)
+    private function validateOriginatorBodyField($originator)
     {
         if (is_numeric($originator)) {
             if (intval($originator) < 0) {
@@ -89,7 +89,7 @@ class MessageBirdValidation
      * @param $bodyData
      * @throws MessageBirdException
      */
-    private static function checkIfExpectedFieldsArePresentAndNotEmpty($bodyData)
+    private function checkIfExpectedFieldsArePresentAndNotEmpty($bodyData)
     {
         foreach (self::expectedBodyFields() as $expectedBodyField) {
             if (!isset($bodyData->$expectedBodyField)) {
@@ -105,7 +105,7 @@ class MessageBirdValidation
      * Returns an array of JSON fields that must be present in the POST body.
      * @return array
      */
-    private static function expectedBodyFields()
+    private function expectedBodyFields()
     {
         return array(
             'recipients',

@@ -6,6 +6,14 @@ use Evangelos\MessageBird\Validation\MessageBirdValidation;
 
 class TestMessageBirdValidation extends \PHPUnit_Framework_TestCase
 {
+    /** @var MessageBirdValidation */
+    private $instance = null;
+
+    public function setUp()
+    {
+        $this->instance = new MessageBirdValidation();
+    }
+
     /**
      * Method that tests invalid fields in the POST body request
      * @expectedException \Exception
@@ -14,7 +22,7 @@ class TestMessageBirdValidation extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidPostRequestBodyFields($bodyData)
     {
-        MessageBirdValidation::validatePostRequestBodyFields($bodyData);
+        $this->instance->validatePostRequestBodyFields($bodyData);
     }
 
     /**
@@ -25,7 +33,7 @@ class TestMessageBirdValidation extends \PHPUnit_Framework_TestCase
      */
     public function testValidPostRequestBodyFields($bodyData)
     {
-        $this->assertNull(MessageBirdValidation::validatePostRequestBodyFields($bodyData));
+        $this->assertNull($this->instance->validatePostRequestBodyFields($bodyData));
     }
 
     public function provideValidPostBody()
