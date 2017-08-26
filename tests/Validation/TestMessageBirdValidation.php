@@ -18,20 +18,55 @@ class TestMessageBirdValidation extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Method that tests Valid fields in the POST body request
+     *
+     * @dataProvider provideValidPostBody
+     * @param $bodyData
+     */
+    public function testValidPostRequestBodyFields($bodyData)
+    {
+        $this->assertNull(MessageBirdValidation::validatePostRequestBodyFields($bodyData));
+    }
+
+    public function provideValidPostBody()
+    {
+        return [
+            'Recipients: Simple numeric' => [
+                $this->getBody('+123456789', 'Evangelos', 'Simple short plain message')
+            ],
+            'Recipients: Two numerics, one with a + sign' => [
+                $this->getBody('123456789,+123456789', 'Evangelos', 'Simple short plain message')
+            ],
+            'Originator: Numeric' => [
+                $this->getBody('+123456789', '1234', 'Simple short plain message')
+            ],
+            'Originator: AlphaNumeric' => [
+                $this->getBody('+123456789', '1234Evan', 'Simple short plain message')
+            ],
+            'Message: Simple' => [
+                $this->getBody('123456789', 'Evangelos', 'Simple short plain message')
+            ],
+            'Message: Unicode' => [
+                $this->getBody('123456789', 'Evangelos', 'This is a test message with a smiling emoji 😀.')
+            ],
+        ];
+    }
+
+    /**
      * Provides a collection of invalid POST request bodies.
      * @return array
      */
     public function provideInvalidPostBody()
     {
         return [
-            'Recipient: Not set' => [
+            'Recipients: Not set' => [
                 $this->getBodyUnsetField('+123456789', 'Evangelos', 'Simple short plain message', 'recipients')
             ],
-            'Recipient: Two + signs at the beginning' => [
+            'Recipients: Two + signs at the beginning' => [
                 $this->getBody('++123456789', 'Evangelos', 'Simple short plain message')
             ],
-            'Recipient: empty' => [$this->getBody('123456789,,123456', 'Evangelos', 'Simple short plain message')],
-            'Recipient: alphanumeric' => [
+            'Recipients: empty' => [$this->getBody('123456789,,123456', 'Evangelos', 'Simple short plain message')],
+            'Recipients: alphanumeric' => [
                 $this->getBody('123456789,123f456', 'Evangelos', 'Simple short plain message')
             ],
             'Originator: numeric less than zero' => [
