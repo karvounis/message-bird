@@ -2,6 +2,7 @@
 
 namespace Evangelos\MessageBird\Validation;
 
+use Evangelos\MessageBird\Api\App;
 use Evangelos\MessageBird\Api\MessageBird;
 use Evangelos\MessageBird\Exceptions\MessageBirdException;
 
@@ -34,7 +35,7 @@ class MessageBirdValidation
      * @param $recipients
      * @throws MessageBirdException
      */
-    public static function validateRecipientsBodyField($recipients)
+    private static function validateRecipientsBodyField($recipients)
     {
         $explodedRecipients = explode(',', $recipients);
         foreach ($explodedRecipients as $key => $explodedRecipient) {
@@ -50,13 +51,13 @@ class MessageBirdValidation
      * @param $message
      * @throws MessageBirdException
      */
-    public static function validateMessageBodyField($message)
+    private static function validateMessageBodyField($message)
     {
         $messageLength = strlen($message);
         if ($messageLength > MessageBird::PLAIN_SMS_MAX_LENGTH) {
             throw new MessageBirdException('Message is longer than allowed.');
         }
-        if (strlen($message) != strlen(utf8_decode($message))) {
+        if (App::isStringUnicode($message)) {
             if ($messageLength > MessageBird::UNICODE_SMS_MAX_LENGTH) {
                 throw new MessageBirdException('Message is longer than allowed.');
             }
@@ -69,7 +70,7 @@ class MessageBirdValidation
      * @param $originator
      * @throws MessageBirdException
      */
-    public static function validateOriginatorBodyField($originator)
+    private static function validateOriginatorBodyField($originator)
     {
         if (is_numeric($originator)) {
             if (intval($originator) < 0) {

@@ -67,6 +67,19 @@ class App
     }
 
     /**
+     * Checks whether a given string is unicode.
+     * @param $str
+     * @return bool
+     */
+    public static function isStringUnicode($str)
+    {
+        if (strlen($str) != strlen(utf8_decode($str))) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param Slim $app
      * @param $code
      */

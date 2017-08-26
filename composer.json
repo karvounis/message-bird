@@ -16,7 +16,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Evangelos\\MessageBird\\": "src/"
+            "Evangelos\\MessageBird\\": "src/",
+            "Evangelos\\MessageBird\\Tests\\": "tests/"
         }
     }
 }
