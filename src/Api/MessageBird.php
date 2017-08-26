@@ -7,6 +7,7 @@ use MessageBird\Client;
 use MessageBird\Exceptions\AuthenticateException;
 use MessageBird\Exceptions\BalanceException;
 use MessageBird\Objects\Message;
+use Slim\Slim;
 
 /**
  * Class MessageBird
@@ -79,6 +80,8 @@ class MessageBird
     public static function sendMessageThroughMessageBird($messageBirdClient, $requestBody)
     {
         $bodyMessage = $requestBody->message;
+        $isMessageUnicode = App::isStringUnicode($bodyMessage);
+        $doesMessageNeedToBeChunked = self::doesMessageNeedToBeChunked($bodyMessage, $isMessageUnicode);
 //        $bodyMessageSplit = App::strSplitUnicode($bodyMessage, self::SMS_LENGTH);
 //        foreach ($bodyMessageSplit as $item) {
 //            $message = self::prepareMessageBirdMessage($requestBody->originator, array($requestBody->recipient),
@@ -86,5 +89,17 @@ class MessageBird
 ////            $messageBirdResponse = $messageBirdClient->messages->create($message);
 //            sleep(1);
 //        }
+    }
+
+    public static function doesMessageNeedToBeChunked($message, $isUnicode = false)
+    {
+        $messageLength = strlen($message);
+        if ($messageLength > self::PLAIN_SMS_SINGLE_MESSAGE_MAX_LENGTH) {
+            return true;
+        }
+        if ($isUnicode && $messageLength > self::UNICODE_SMS_SINGLE_MESSAGE_MAX_LENGTH) {
+            return true;
+        }
+        return false;
     }
 }
