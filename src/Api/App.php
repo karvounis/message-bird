@@ -2,6 +2,7 @@
 
 namespace Evangelos\MessageBird\Api;
 
+use MessageBird\Client;
 use Slim\Slim;
 
 /**
@@ -11,6 +12,7 @@ use Slim\Slim;
 class App
 {
     const REQUEST_SUCCESS = '200';
+    const REQUEST_BAD_REQUEST = '400';
 
     /** @var Slim */
     protected static $app = null;
@@ -35,7 +37,7 @@ class App
     {
         self::$app->container->singleton('messageBird', function () {
             $messageBirdIni = parse_ini_file(__DIR__ . '/../../config/MessageBird.ini');
-            return $messageBirdIni;
+            return new Client($messageBirdIni['api_key']);
         });
     }
 
@@ -72,5 +74,18 @@ class App
     {
         $app->response->setStatus($code);
         $app->response->headers->set('Content-Type', 'application/json');
+    }
+
+    public static function strSplitUnicode($str, $length = 0)
+    {
+        if ($length > 0) {
+            $ret = array();
+            $len = mb_strlen($str, "UTF-8");
+            for ($i = 0; $i < $len; $i += $length) {
+                $ret[] = mb_substr($str, $i, $length, "UTF-8");
+            }
+            return $ret;
+        }
+        return preg_split("//u", $str, -1, PREG_SPLIT_NO_EMPTY);
     }
 }
