@@ -14,12 +14,14 @@
                 </and>
             </not>
             <then>
-                <input propertyname="env.NGINX_PORT">NGINX Port:</input>
+                <input propertyname="env.NGINX_PORT" defaultValue="8558">NGINX Port:</input>
                 <input propertyname="env.MESSAGE_BIRD_API_KEY">MessageBird API Key:</input>
-                <input propertyname="env.REDIS_SCHEME">Redis Scheme:</input>
-                <input propertyname="env.REDIS_HOST">Redis Host:</input>
-                <input propertyname="env.REDIS_PORT">Redis Port (used from the API):</input>
-                <input propertyname="env.DOCKER_HOST_REDIS_PORT">Docker Host Redis Port (different than the above key as this is used from the docker-compose):</input>
+                <input propertyname="env.REDIS_SCHEME" defaultValue="tcp">Redis Scheme:</input>
+                <input propertyname="env.REDIS_HOST" defaultValue="redis">Redis Host:</input>
+                <input propertyname="env.REDIS_PORT" defaultValue="6379">Redis Port (used from the API):</input>
+                <input propertyname="env.DOCKER_HOST_REDIS_PORT" defaultValue="6379">
+                    Docker Host Redis Port (different than the above key as this is used from the docker-compose):
+                </input>
             </then>
         </if>
     </target>
