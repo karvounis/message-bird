@@ -22,6 +22,7 @@ class MessageBird
     const UNICODE_SMS_SINGLE_MESSAGE_MAX_LENGTH = 70;
     const UNICODE_SMS_CHUNKED_MESSAGE_MAX_LENGTH = 67;
 
+    const DATACODING_AUTO = 'auto';
     const UDH_BEGINNING = '050003';
 
     const REQUEST_SUCCESSFUL = 'Request successful';
@@ -88,10 +89,11 @@ class MessageBird
     {
         $message = $body->message;
         $isMessageUnicode = App::isStringUnicode($message);
+
         $doesMessageNeedToBeChunked = self::doesMessageNeedToBeChunked($message, $isMessageUnicode);
         $recipients = explode(',', $body->recipients);
         if (!$doesMessageNeedToBeChunked) {
-            self::queueSingeMessageToRedis($body->originator, $recipients, $message, [], Message::DATACODING_PLAIN,
+            self::queueSingeMessageToRedis($body->originator, $recipients, $message, [], self::DATACODING_AUTO,
                 Message::TYPE_SMS, $redisClient);
         } else {
             $chunkedMessages = self::getChunkedMessages($message, $isMessageUnicode);
@@ -99,7 +101,7 @@ class MessageBird
             foreach ($chunkedMessages as $key => $chunkedMessage) {
                 $udh = self::calculateUDH($referenceNumber, count($chunkedMessages), $key + 1);
                 self::queueSingeMessageToRedis($body->originator, $recipients, $chunkedMessage, ['udh' => $udh],
-                    Message::DATACODING_PLAIN, Message::TYPE_BINARY, $redisClient);
+                    self::DATACODING_AUTO, Message::TYPE_BINARY, $redisClient);
             }
         }
     }

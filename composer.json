@@ -11,7 +11,8 @@
         "slim/slim": "^2.6",
         "predis/predis": "^1.1",
         "phing/phing": "^2.16",
-        "messagebird/php-rest-api": "^1.6.7"
+        "messagebird/php-rest-api": "^1.6.7",
+        "chargeover/redlock-php": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.7"

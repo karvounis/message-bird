@@ -1,6 +1,6 @@
 # Message Bird
 
-Implementation of a simple API that posts messages to Message Bird.
+Implementation of a simple API that posts messages to Message Bird API.
 
 ## Technologies used
 * PHP 7.1
@@ -26,7 +26,7 @@ Now, you are ready to accept connections to the API and push messages to a redis
 That results in a message pushed into the Redis queue, waiting to be picked up by a worker.
 5. Now, you need to instantiate a worker in order to start sending messages to MessageBird.
 You can execute `docker exec -it messagebird_php_1 php /usr/share/nginx/html/workers/MessageBirdWorker.php`. 
-This command starts a worker with an interactive shell. 
+This command starts a worker with an interactive shell. You can instantiate as many as you want. The throughput is 1 call/second.
 
 
 ## How it works
