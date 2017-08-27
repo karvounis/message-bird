@@ -4,6 +4,7 @@ namespace Evangelos\MessageBird\Api;
 
 use MessageBird\Client;
 use Slim\Slim;
+use Predis\Client as PredisClient;
 
 /**
  * Class App
@@ -36,9 +37,35 @@ class App
     private static function addDependencies()
     {
         self::$app->container->singleton('messageBird', function () {
-            $messageBirdIni = parse_ini_file(__DIR__ . '/../../config/MessageBird.ini');
-            return new Client($messageBirdIni['api_key']);
+            return self::getMessageBirdClient();
         });
+        self::$app->container->singleton('redis', function () {
+            return self::getRedisClient();
+        });
+    }
+
+    /**
+     * Gets an instance of a Redis Client based on the configuration file.
+     * @return PredisClient
+     */
+    public static function getRedisClient()
+    {
+        $redisIni = parse_ini_file(__DIR__ . '/../../config/Redis.ini');
+        return new PredisClient(array(
+            "scheme" => $redisIni['scheme'],
+            "host" => $redisIni['host'],
+            "port" => $redisIni['port']
+        ));
+    }
+
+    /**
+     * Gets an instance of a Redis Client based on the configuration file.
+     * @return Client
+     */
+    public static function getMessageBirdClient()
+    {
+        $messageBirdIni = parse_ini_file(__DIR__ . '/../../config/MessageBird.ini');
+        return new Client($messageBirdIni['api_key']);
     }
 
     /**

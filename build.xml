@@ -5,11 +5,21 @@
         <if>
             <not>
                 <and>
+                    <isset property="env.NGINX_PORT"></isset>
                     <isset property="env.MESSAGE_BIRD_API_KEY"></isset>
+                    <isset property="env.REDIS_SCHEME"></isset>
+                    <isset property="env.REDIS_HOST"></isset>
+                    <isset property="env.REDIS_PORT"></isset>
+                    <isset property="env.DOCKER_HOST_REDIS_PORT"></isset>
                 </and>
             </not>
             <then>
+                <input propertyname="env.NGINX_PORT">NGINX Port:</input>
                 <input propertyname="env.MESSAGE_BIRD_API_KEY">MessageBird API Key:</input>
+                <input propertyname="env.REDIS_SCHEME">Redis Scheme:</input>
+                <input propertyname="env.REDIS_HOST">Redis Host:</input>
+                <input propertyname="env.REDIS_PORT">Redis Port (used from the API):</input>
+                <input propertyname="env.DOCKER_HOST_REDIS_PORT">Docker Host Redis Port (different than the above key as this is used from the docker-compose):</input>
             </then>
         </if>
     </target>
@@ -17,10 +27,17 @@
         <copy todir="${project.basedir}" overwrite="true">
             <mapper type="glob" from="*_TEMPLATE" to="*"/>
             <filelist dir="${project.basedir}"
-                      files="config/MessageBird.ini_TEMPLATE"/>
+                      files="config/MessageBird.ini_TEMPLATE,
+                        config/Redis.ini_TEMPLATE,
+                        docker-compose.yml_TEMPLATE"/>
             <filterchain>
                 <replacetokens begintoken="%%" endtoken="%%">
+                    <token key="NGINX_PORT" value="${env.NGINX_PORT}"/>
                     <token key="MESSAGE_BIRD_API_KEY" value="${env.MESSAGE_BIRD_API_KEY}"/>
+                    <token key="REDIS_SCHEME" value="${env.REDIS_SCHEME}"/>
+                    <token key="REDIS_HOST" value="${env.REDIS_HOST}"/>
+                    <token key="REDIS_PORT" value="${env.REDIS_PORT}"/>
+                    <token key="DOCKER_HOST_REDIS_PORT" value="${env.DOCKER_HOST_REDIS_PORT}"/>
                 </replacetokens>
             </filterchain>
         </copy>

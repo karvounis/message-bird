@@ -3,10 +3,10 @@
 namespace Evangelos\MessageBird\Api;
 
 use Evangelos\MessageBird\Validation\MessageBirdValidation;
-use MessageBird\Client;
 use MessageBird\Exceptions\AuthenticateException;
 use MessageBird\Exceptions\BalanceException;
 use MessageBird\Objects\Message;
+use Predis\Client;
 
 /**
  * Class MessageBird
@@ -28,6 +28,8 @@ class MessageBird
     const WRONG_LOGIN = 'Wrong login';
     const NOT_ENOUGH_BALANCE = 'Not enough balance';
 
+    const REDIS_QUEUE_NAME = 'message_bird_queue';
+
     public static function postMessage()
     {
         try {
@@ -36,9 +38,10 @@ class MessageBird
             $messageBirdValidation = new MessageBirdValidation();
             $messageBirdValidation->validatePostRequestBodyFields($bodyDecoded);
 
-            $messageBirdClient = $app->container->get('messageBird');
-            $messageBirdResponseIds = self::sendMessageThroughMessageBird($messageBirdClient, $bodyDecoded);
-            App::prepareResponse(App::REQUEST_SUCCESS, $messageBirdResponseIds, self::REQUEST_SUCCESSFUL);
+            $redisClient = $app->container->get('redis');
+            self::queueMessageInRedis($bodyDecoded, $redisClient);
+
+            App::prepareResponse(App::REQUEST_SUCCESS, [], self::REQUEST_SUCCESSFUL);
         } catch (AuthenticateException $e) {
             App::prepareResponse(App::REQUEST_BAD_REQUEST, '', self::WRONG_LOGIN);
         } catch (BalanceException $e) {
@@ -59,7 +62,7 @@ class MessageBird
      * @param string $type
      * @return Message
      */
-    protected static function prepareMessageBirdMessage(
+    public static function prepareMessageBirdMessage(
         $originator,
         array $recipients,
         $body,
@@ -78,60 +81,54 @@ class MessageBird
     }
 
     /**
-     * Method that sends the messages to the recipient(s) through MessageBird.
-     *
-     * @param Client $messageBirdClient
-     * @param $requestBody
-     * @return array Ids of MessageBird Response(s)
+     * @param $body
+     * @param Client $redisClient
      */
-    public static function sendMessageThroughMessageBird($messageBirdClient, $requestBody)
+    public static function queueMessageInRedis($body, $redisClient)
     {
-        $message = $requestBody->message;
+        $message = $body->message;
         $isMessageUnicode = App::isStringUnicode($message);
         $doesMessageNeedToBeChunked = self::doesMessageNeedToBeChunked($message, $isMessageUnicode);
-        $recipients = explode(',', $requestBody->recipients);
-        $messageBirdResponseIds = [];
+        $recipients = explode(',', $body->recipients);
         if (!$doesMessageNeedToBeChunked) {
-            $messageBirdResponseIds[] = self::sendSingleMessageToMessageBird($messageBirdClient,
-                $requestBody->originator, $recipients, $message, [], Message::DATACODING_PLAIN, Message::TYPE_SMS);
+            self::queueSingeMessageToRedis($body->originator, $recipients, $message, [], Message::DATACODING_PLAIN,
+                Message::TYPE_SMS, $redisClient);
         } else {
             $chunkedMessages = self::getChunkedMessages($message, $isMessageUnicode);
             $referenceNumber = self::getRandomReferenceNumber();
             foreach ($chunkedMessages as $key => $chunkedMessage) {
                 $udh = self::calculateUDH($referenceNumber, count($chunkedMessages), $key + 1);
-                $messageBirdResponseIds[] = self::sendSingleMessageToMessageBird($messageBirdClient,
-                    $requestBody->originator, $recipients, $chunkedMessage, ['udh' => $udh], Message::DATACODING_PLAIN,
-                    Message::TYPE_BINARY);
+                self::queueSingeMessageToRedis($body->originator, $recipients, $chunkedMessage, ['udh' => $udh],
+                    Message::DATACODING_PLAIN, Message::TYPE_BINARY, $redisClient);
             }
         }
-        return $messageBirdResponseIds;
     }
 
     /**
-     * Sends a single message to MessageBird. Returns the id of the MessageBird response.
+     * Prepares the Message object to be sent to Redis.
+     * JSON encodes it and queues it.
      *
-     * @param Client $messageBirdClient
      * @param $originator
      * @param $recipients
      * @param $message
      * @param $typeDetails
      * @param $dataCoding
      * @param $type
-     * @return string
+     * @param Client $redisClient
      */
-    private function sendSingleMessageToMessageBird(
-        $messageBirdClient,
+    private static function queueSingeMessageToRedis(
         $originator,
         $recipients,
         $message,
         $typeDetails,
         $dataCoding,
-        $type
+        $type,
+        $redisClient
     ) {
-        $messageToSend = self::prepareMessageBirdMessage($originator, $recipients, $message, $typeDetails, $dataCoding,
-            $type);
-        $messageBirdResponse = $messageBirdClient->messages->create($messageToSend);
-        return $messageBirdResponse->getId();
+        $messageToQueue = self::prepareMessageBirdMessage($originator, $recipients, $message,
+            $typeDetails,
+            $dataCoding, $type);
+        $redisClient->rpush(self::REDIS_QUEUE_NAME, json_encode($messageToQueue));
     }
 
     /**

@@ -2,7 +2,9 @@
 
 namespace Evangelos\MessageBird\Validation\Tests;
 
+use Evangelos\MessageBird\Api\App;
 use Evangelos\MessageBird\Api\MessageBird;
+use Predis\Connection\ConnectionException;
 
 class TestMessageBird extends \PHPUnit_Framework_TestCase
 {
@@ -17,6 +19,25 @@ class TestMessageBird extends \PHPUnit_Framework_TestCase
     public function testMessageNeedsToBeChunked($message, $isUnicode)
     {
         $this->assertTrue(MessageBird::doesMessageNeedToBeChunked($message, $isUnicode));
+    }
+
+    /**
+     * Tests whether a message can be successfully queued in Redis.
+     * If an ConnectionException is thrown, it is caught as it can be expected.
+     */
+    public function testSuccessfulQueueMessageInRedis()
+    {
+        try {
+            $requestBody = new \stdClass();
+            $requestBody->recipients = "+0624127452";
+            $requestBody->message = "Lorem ipsum dolor sit a";
+            $requestBody->originator = "Evangelos";
+            $redisClient = App::getRedisClient();
+
+            $this->assertNull(MessageBird::queueMessageInRedis($requestBody, $redisClient));
+        } catch (ConnectionException $connectionException) {
+            $this->assertTrue(true);
+        }
     }
 
     /**
