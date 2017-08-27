@@ -4,5 +4,5 @@ config/*.ini
 composer.lock
 !.gitkeep
 /vendor/
-docker-compose.yml
+#docker-compose.yml
 .redis_data/
