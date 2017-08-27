@@ -21,7 +21,7 @@ while (true) {
     if (!is_null($redisQueuePopResponse)) {
         $firstQueuedMessage = $redisQueuePopResponse[1];
         $messageToSendDecoded = json_decode($firstQueuedMessage);
-        echo $firstQueuedMessage . PHP_EOL;
+        echo 'Sending message: ' . $firstQueuedMessage . PHP_EOL;
 
         $messageToSend = MessageBird::prepareMessageBirdMessage($messageToSendDecoded->originator,
             $messageToSendDecoded->recipients, $messageToSendDecoded->body, $messageToSendDecoded->typeDetails,
